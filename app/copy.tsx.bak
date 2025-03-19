@@ -1,0 +1,254 @@
+import React, { useState, useEffect, useRef } from "react";
+import {
+  TouchableOpacity,
+  SafeAreaView,
+  View,
+  Text,
+} from "react-native";
+import MapView, { Marker, MapPressEvent } from "react-native-maps";
+import * as Location from "expo-location";
+import { Ionicons } from "@expo/vector-icons";
+import SouvenirModal from "./components/souvenirModal";
+import SouvenirViewModal from "./components/souvenirViewModal";
+import { Souvenir, getSouvenirs } from "./components/souvenirManager";
+import { styles } from "./styles";
+
+const Map = () => {
+  const [location, setLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+  const [clickedLocation, setClickedLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+  const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
+  const [isViewModalVisible, setIsViewModalVisible] = useState(false);
+  const [selectedSouvenir, setSelectedSouvenir] = useState<Souvenir | null>(null);
+  const [souvenirs, setSouvenirs] = useState<Souvenir[]>([]);
+  const [color, setColor] = useState("red");
+  const [musicId, setMusicId] = useState("poom tchak poom tchak");
+  const [memoryNote, setMemoryNote] = useState("I forgor 💀");
+  const mapRef = useRef<MapView>(null);
+  const [currentSouvenirIndex, setCurrentSouvenirIndex] = useState<number>(0);
+  const [tempMarker, setTempMarker] = useState<{latitude: number; longitude: number} | null>(null);
+  const [region, setRegion] = useState({
+    latitude: 48.8566,
+    longitude: 2.3522,
+    latitudeDelta: 0.05,
+    longitudeDelta: 0.05,
+  });
+
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        console.log("Permission refused");
+        return;
+      }
+
+      let currentLocation = await Location.getCurrentPositionAsync({});
+      setLocation({
+        latitude: currentLocation.coords.latitude,
+        longitude: currentLocation.coords.longitude,
+      });
+    })();
+  }, []);
+
+  const refreshSouvenirs = async () => {
+    const fetchedSouvenirs = await getSouvenirs();
+    setSouvenirs(fetchedSouvenirs);
+  };
+
+  useEffect(() => {
+    refreshSouvenirs();
+  }, []);
+
+  const centerMapOnUser = () => {
+    if (location && mapRef.current) {
+      mapRef.current.animateToRegion({
+        latitude: location.latitude,
+        longitude: location.longitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      });
+    }
+  };
+
+  const centerMapOnSouvenir = (souvenir: Souvenir) => {
+    if (mapRef.current) {
+      const isModalVisible = isCreateModalVisible || isViewModalVisible;
+      const latitudeDelta = 0.01;
+      const longitudeDelta = 0.01;
+      
+      // When modal is visible, offset the center point upward
+      const centerLatitude = souvenir.latitude - (isModalVisible ? 0.005 : 0.005);
+      
+      mapRef.current.animateToRegion({
+        latitude: centerLatitude,
+        longitude: souvenir.longitude,
+        latitudeDelta,
+        longitudeDelta,
+      });
+    }
+  };
+
+  const centerMapOnTempMarker = () => {
+    if (mapRef.current && tempMarker) {
+      const latitudeDelta = 0.01;
+      const longitudeDelta = 0.01;
+      
+      // When modal is visible, offset the center point upward
+      const centerLatitude = tempMarker.latitude - 0.003
+      
+      mapRef.current.animateToRegion({
+        latitude: centerLatitude,
+        longitude: tempMarker.longitude,
+        latitudeDelta,
+        longitudeDelta,
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (tempMarker && isCreateModalVisible) {
+      centerMapOnTempMarker();
+    }
+  }, [tempMarker, isCreateModalVisible]);
+
+  const handleMapPress = (event: MapPressEvent) => {
+    const { latitude, longitude } = event.nativeEvent.coordinate;
+    setClickedLocation({ latitude, longitude });
+    setTempMarker({ latitude, longitude });
+    setIsCreateModalVisible(true);
+  };
+
+  const handlePreviousSouvenir = () => {
+    if (currentSouvenirIndex > 0) {
+      setCurrentSouvenirIndex(currentSouvenirIndex - 1);
+      setSelectedSouvenir(souvenirs[currentSouvenirIndex - 1]);
+      centerMapOnSouvenir(souvenirs[currentSouvenirIndex - 1]);
+    }
+  };
+
+  const handleNextSouvenir = () => {
+    if (currentSouvenirIndex < souvenirs.length - 1) {
+      setCurrentSouvenirIndex(currentSouvenirIndex + 1);
+      setSelectedSouvenir(souvenirs[currentSouvenirIndex + 1]);
+      centerMapOnSouvenir(souvenirs[currentSouvenirIndex + 1]);
+    }
+  };
+
+  const handleMarkerPress = (souvenir: Souvenir, index: number) => {
+    setSelectedSouvenir(souvenir);
+    setCurrentSouvenirIndex(index);
+    setIsViewModalVisible(true);
+    centerMapOnSouvenir(souvenir);
+  };
+
+  const closeCreateModal = () => {
+    setIsCreateModalVisible(false);
+    setTempMarker(null);
+  };
+
+  const closeViewModal = () => {
+    setIsViewModalVisible(false);
+    setSelectedSouvenir(null);
+  };
+
+  const handleEditSouvenir = () => {
+    setIsViewModalVisible(false);
+    setIsCreateModalVisible(true);
+    if (selectedSouvenir) {
+      setColor(selectedSouvenir.color);
+      setMemoryNote(selectedSouvenir.note);
+      setMusicId(selectedSouvenir.musicId);
+      setClickedLocation({
+        latitude: selectedSouvenir.latitude,
+        longitude: selectedSouvenir.longitude,
+      });
+    }
+  };
+
+  useEffect(() => {
+    setRegion((prevRegion) => ({
+      ...prevRegion,
+      latitudeDelta: 0.05,
+      longitudeDelta: 0.05,
+    }));
+  }, [souvenirs]);
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <MapView
+        ref={mapRef}
+        style={styles.map}
+        provider="google"
+        initialRegion={{
+          latitude: location ? location.latitude : 48.8566,
+          longitude: location ? location.longitude : 2.3522,
+          latitudeDelta: 0.05,
+          longitudeDelta: 0.05,
+        }}
+        onPress={handleMapPress}
+        onRegionChangeComplete={(newRegion) => {
+          setRegion(newRegion);
+        }}
+      >
+        {location && (
+          <Marker
+            coordinate={location}
+            title="You are here"
+            description="Current location"
+            pinColor="blue"
+          />
+        )}
+        {tempMarker && (
+          <Marker
+            coordinate={tempMarker}
+            title="New souvenir location"
+            pinColor={color}
+          />
+        )}
+        {souvenirs.map((souvenir, index) => (
+          <Marker
+            key={index}
+            coordinate={{ latitude: souvenir.latitude, longitude: souvenir.longitude }}
+            title={souvenir.note}
+            pinColor={souvenir.color}
+            onPress={() => handleMarkerPress(souvenir, index)}
+          />
+        ))}
+      </MapView>
+
+      <TouchableOpacity style={styles.locateButton} onPress={centerMapOnUser}>
+        <Ionicons name="locate" size={24} color="white" style={styles.locateIcon} />
+      </TouchableOpacity>
+
+      <SouvenirModal
+        isVisible={isCreateModalVisible}
+        onClose={closeCreateModal}
+        clickedLocation={clickedLocation}
+        color={color}
+        setColor={setColor}
+        memoryNote={memoryNote}
+        setMemoryNote={setMemoryNote}
+        musicId={musicId}
+        onSouvenirCreated={refreshSouvenirs}
+      />
+
+      <SouvenirViewModal
+        isVisible={isViewModalVisible}
+        onClose={closeViewModal}
+        onEdit={handleEditSouvenir}
+        souvenir={selectedSouvenir}
+        onPrevious={handlePreviousSouvenir}
+        onNext={handleNextSouvenir}
+        hasPrevious={currentSouvenirIndex > 0}
+        hasNext={currentSouvenirIndex < souvenirs.length - 1}
+      />
+    </SafeAreaView>
+  );
+};
+
+export default Map;
