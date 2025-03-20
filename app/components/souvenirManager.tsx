@@ -52,3 +52,11 @@ export const updateSouvenir = async (souvenir: Souvenir, souvenirId: string) => 
     return null;
   }
 };
+
+const souvenirManager = {
+  saveSouvenir,
+  getSouvenirs,
+  updateSouvenir,
+};
+
+export default souvenirManager;
