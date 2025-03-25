@@ -26,20 +26,36 @@ export const saveSouvenir = async (souvenir: Souvenir) => {
 };
 
 export const getSouvenirs = async () => {
-  const querySnapshot = await getDocs(collection(db, "souvenirs"));
-  return querySnapshot.docs.map((doc) => {
-    const data = doc.data();
-    return new Souvenir(
-      data.longitude,
-      data.latitude,
-      data.color,
-      data.image,
-      data.note,
-      data.title,
-      data.date.toDate(),
-      doc.id
-    );
-  });
+  try {
+    const querySnapshot = await getDocs(collection(db, "souvenirs"));
+    const souvenirs = querySnapshot.docs.map((doc) => {
+      const data = doc.data();
+      
+      // Skip empty objects
+      if (!data || Object.keys(data).length === 0) {
+        return null;
+      }
+
+      // Handle missing date field
+      const date = data.date ? data.date.toDate() : new Date();
+      
+      return new Souvenir(
+        data.longitude,
+        data.latitude,
+        data.color,
+        data.image || "",
+        data.note || "",
+        data.title || "Untitled",
+        date,
+        doc.id
+      );
+    }).filter(souvenir => souvenir !== null); // Remove null entries
+    
+    return souvenirs;
+  } catch (e) {
+    console.error("Error fetching souvenirs:", e);
+    return [];
+  }
 };
 
 export const updateSouvenir = async (souvenir: Souvenir, souvenirId: string) => {

@@ -91,12 +91,15 @@ const Map = () => {
 
   const refreshSouvenirs = async () => {
     const fetchedSouvenirs = await getSouvenirs();
+    console.log('Fetched souvenirs:', fetchedSouvenirs);
     setSouvenirs(fetchedSouvenirs);
   };
 
-  const filteredSouvenirs = souvenirs.filter(souvenir => 
-    souvenir.latitude && souvenir.longitude
-  );
+  const filteredSouvenirs = souvenirs.filter(souvenir => {
+    console.log('Checking souvenir:', souvenir);
+    return souvenir.latitude && souvenir.longitude;
+  });
+  console.log('Filtered souvenirs:', filteredSouvenirs);
 
   const centerMapOnUser = () => {
     if (location && mapRef.current) {
