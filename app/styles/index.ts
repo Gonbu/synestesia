@@ -68,17 +68,25 @@ export const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     width: "100%",
     height: "50%",
+    flexDirection: 'column',
+  },
+  modalHeader: {
+    marginBottom: 20,
   },
   modalScrollContent: {
-    flexGrow: 1,
-    paddingVertical: 10,
-    justifyContent: "flex-start",
+    flex: 1,
+  },
+  modalScrollContentContainer: {
+    paddingBottom: 20,
+  },
+  modalFooter: {
+    marginTop: 20,
+    gap: 10,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: "bold",
     textAlign: "center",
-    marginBottom: 20,
   },
   noteInput: {
     borderBottomWidth: 1,
@@ -222,6 +230,151 @@ export const styles = StyleSheet.create({
   buttonText: {
     color: "white",
     fontWeight: "bold",
+  },
+
+  // Music Manager styles
+  musicManagerContainer: {
+    width: '100%',
+    position: 'relative',
+    marginBottom: 20,
+  },
+  musicSearchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  musicSearchInput: {
+    flex: 1,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: '#333',
+  },
+  musicLoader: {
+    marginLeft: 8,
+  },
+  musicTrackList: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    right: 0,
+    maxHeight: 200,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    zIndex: 1000,
+  },
+  musicTrackListContent: {
+    flexGrow: 1,
+  },
+  musicTrackItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    backgroundColor: '#fff',
+  },
+  musicTrackImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 4,
+  },
+  musicTrackInfo: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  musicTrackName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+  },
+  musicTrackArtist: {
+    fontSize: 12,
+    color: '#666',
+  },
+  musicSelectedTrackContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  musicSelectedTrackImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 4,
+  },
+  musicSelectedTrackInfo: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  musicSelectedTrackName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  musicSelectedTrackArtist: {
+    fontSize: 14,
+    color: '#666',
+  },
+  musicResetButton: {
+    padding: 4,
+    marginLeft: 8,
+  },
+
+  // Music Preview styles
+  musicPreview: {
+    marginTop: 20,
+    padding: 15,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 10,
+  },
+  musicPreviewTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 10,
+    color: '#333',
+  },
+  musicPreviewTrackContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 10,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  musicPreviewTrackImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 4,
+  },
+  musicPreviewTrackInfo: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  musicPreviewTrackName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  musicPreviewTrackArtist: {
+    fontSize: 14,
+    color: '#666',
   },
 });
 

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   TouchableOpacity,
@@ -10,6 +10,7 @@ import Modal from "react-native-modal";
 import { Ionicons } from "@expo/vector-icons";
 import { Souvenir } from "./souvenirManager";
 import { styles } from "../styles";
+import { getAccessToken } from "../services/spotifyConfig";
 
 interface SouvenirViewModalProps {
   isVisible: boolean;
@@ -28,6 +29,14 @@ interface SouvenirViewModalProps {
   totalSouvenirs?: number;
 }
 
+interface SpotifyTrack {
+  name: string;
+  artists: { name: string }[];
+  album: {
+    images: { url: string }[];
+  };
+}
+
 const SouvenirViewModal: React.FC<SouvenirViewModalProps> = ({
   isVisible,
   onClose,
@@ -44,6 +53,38 @@ const SouvenirViewModal: React.FC<SouvenirViewModalProps> = ({
   currentSouvenirIndex = 0,
   totalSouvenirs = 1,
 }) => {
+  const [trackInfo, setTrackInfo] = useState<SpotifyTrack | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (souvenir?.spotifyTrackId) {
+      fetchTrackInfo();
+    }
+  }, [souvenir?.spotifyTrackId]);
+
+  const fetchTrackInfo = async () => {
+    if (!souvenir?.spotifyTrackId) return;
+    
+    setLoading(true);
+    try {
+      const token = await getAccessToken();
+      const response = await fetch(
+        `https://api.spotify.com/v1/tracks/${souvenir.spotifyTrackId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const data = await response.json();
+      setTrackInfo(data);
+    } catch (error) {
+      console.error("Erreur lors de la récupération des informations de la piste:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!souvenir) return null;
 
   return (
@@ -111,6 +152,31 @@ const SouvenirViewModal: React.FC<SouvenirViewModalProps> = ({
             <Text style={styles.souvenirDate}>
               {new Date(souvenir.date).toLocaleDateString()}
             </Text>
+            {souvenir.spotifyTrackId && (
+              <View style={styles.musicPreview}>
+                <Text style={styles.musicPreviewTitle}>Musique associée</Text>
+                {loading ? (
+                  <Text>Chargement...</Text>
+                ) : trackInfo ? (
+                  <View style={styles.musicPreviewTrackContainer}>
+                    <Image
+                      source={{ uri: trackInfo.album.images[2]?.url }}
+                      style={styles.musicPreviewTrackImage}
+                    />
+                    <View style={styles.musicPreviewTrackInfo}>
+                      <Text style={styles.musicPreviewTrackName} numberOfLines={1}>
+                        {trackInfo.name}
+                      </Text>
+                      <Text style={styles.musicPreviewTrackArtist} numberOfLines={1}>
+                        {trackInfo.artists.map((a) => a.name).join(", ")}
+                      </Text>
+                    </View>
+                  </View>
+                ) : (
+                  <Text>Impossible de charger les informations de la piste</Text>
+                )}
+              </View>
+            )}
             <View style={styles.buttonContainer}>
               <TouchableOpacity onPress={onAddSouvenir} style={styles.addButton}>
                 <Text style={styles.buttonText}>Add souvenir</Text>

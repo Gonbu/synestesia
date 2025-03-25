@@ -11,6 +11,7 @@ import ColorPicker from "react-native-wheel-color-picker";
 import { captureImage, uploadImage } from "./imageManager";
 import { Souvenir, saveSouvenir, updateSouvenir } from "./souvenirManager";
 import { styles } from "../styles";
+import MusicManager from "./musicManager";
 
 interface SouvenirModalProps {
   isVisible: boolean;
@@ -20,6 +21,8 @@ interface SouvenirModalProps {
   setColor: (color: string) => void;
   memoryNote: string;
   setMemoryNote: (note: string) => void;
+  spotifyTrackId?: string;
+  setSpotifyTrackId?: (trackId: string) => void;
   onSouvenirCreated?: () => void;
 }
 
@@ -31,6 +34,8 @@ const SouvenirModal: React.FC<SouvenirModalProps> = ({
   setColor,
   memoryNote,
   setMemoryNote,
+  spotifyTrackId,
+  setSpotifyTrackId,
   onSouvenirCreated,
 }) => {
   const [title, setTitle] = useState("");
@@ -59,7 +64,8 @@ const SouvenirModal: React.FC<SouvenirModalProps> = ({
         color,
         "",
         memoryNote,
-        title
+        title,
+        spotifyTrackId
       );
 
       const souvenirId = await saveSouvenir(newSouvenir);
@@ -97,39 +103,54 @@ const SouvenirModal: React.FC<SouvenirModalProps> = ({
     >
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
-          <ScrollView 
-            contentContainerStyle={styles.modalScrollContent}
-            showsVerticalScrollIndicator={false}
-          >
+          <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Create your souvenir</Text>
+          </View>
+
+          <ScrollView 
+            style={styles.modalScrollContent}
+            contentContainerStyle={styles.modalScrollContentContainer}
+          >
             <TextInput
               placeholder="Enter a title for your souvenir"
               value={title}
               onChangeText={setTitle}
               style={styles.titleInput}
             />
-            <ColorPicker
-              color={color}
-              onColorChangeComplete={setColor}
-              sliderHidden={true}
-              thumbSize={40}
-            />
+
             <TextInput
               placeholder="Write a little note..!"
               value={memoryNote}
               onChangeText={setMemoryNote}
               style={styles.noteInput}
             />
+
+            <Text style={{ marginBottom: 8, fontSize: 16, fontWeight: '600' }}>Rechercher une musique</Text>
+            <MusicManager onTrackSelected={setSpotifyTrackId ?? (() => {})} />
+
+            <View style={{ marginTop: 20, marginBottom: 20 }}>
+              <Text style={{ marginBottom: 8, fontSize: 16, fontWeight: '600' }}>Choisir une couleur</Text>
+              <ColorPicker
+                color={color}
+                onColorChangeComplete={setColor}
+                sliderHidden={true}
+                thumbSize={40}
+              />
+            </View>
+          </ScrollView>
+
+          <View style={styles.modalFooter}>
             <TouchableOpacity
               onPress={handlePhotoButtonPress}
               style={styles.photoButton}
             >
               <Text style={styles.photoButtonText}>Photo</Text>
             </TouchableOpacity>
+
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <Text style={styles.closeButtonText}>Close</Text>
             </TouchableOpacity>
-          </ScrollView>
+          </View>
         </View>
       </View>
     </Modal>

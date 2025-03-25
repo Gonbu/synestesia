@@ -9,6 +9,7 @@ export class Souvenir {
     public image: string,
     public note: string,
     public title: string,
+    public spotifyTrackId?: string,
     public date: Date = new Date(),
     public id?: string
   ) {}
@@ -17,7 +18,10 @@ export class Souvenir {
 export const saveSouvenir = async (souvenir: Souvenir) => {
   try {
     const { id, ...souvenirWithoutId } = souvenir;
-    const docRef = await addDoc(collection(db, "souvenirs"), souvenirWithoutId);
+    const cleanSouvenir = Object.fromEntries(
+      Object.entries(souvenirWithoutId).filter(([_, value]) => value !== undefined)
+    );
+    const docRef = await addDoc(collection(db, "souvenirs"), cleanSouvenir);
     return docRef.id;
   } catch (e) {
     console.error("Error adding souvenir:", e);
@@ -36,6 +40,7 @@ export const getSouvenirs = async () => {
       data.image,
       data.note,
       data.title,
+      data.spotifyTrackId,
       data.date.toDate(),
       doc.id
     );
@@ -45,7 +50,10 @@ export const getSouvenirs = async () => {
 export const updateSouvenir = async (souvenir: Souvenir, souvenirId: string) => {
   try {
     const { id, ...souvenirWithoutId } = souvenir;
-    await setDoc(doc(db, "souvenirs", souvenirId), souvenirWithoutId);
+    const cleanSouvenir = Object.fromEntries(
+      Object.entries(souvenirWithoutId).filter(([_, value]) => value !== undefined)
+    );
+    await setDoc(doc(db, "souvenirs", souvenirId), cleanSouvenir);
     return souvenirId;
   } catch (e) {
     console.error("Error updating souvenir:", e);
